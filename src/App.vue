@@ -1,10 +1,4 @@
 <template>
-  <html>
-  <head>
-    <title>VoodooRocks</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  </head>
-  <body>
   <div id="app" class="app-container">
     <b-input-group class="align-self-center mt-4 mb-4" id="input-group">
       <b-input-group-prepend is-text>
@@ -12,19 +6,21 @@
       </b-input-group-prepend>
       <b-form-input v-model="search" type="search" placeholder="Filter by authors.."></b-form-input>
     </b-input-group>
-    <b-container class="grid-container">
-          <b-card class="post-card mb-3 text-start" v-for="post in filteredPosts" :key="post.id">
-            <b-card-title class="text-primary" style="font-size: 1.3em">{{ post.title }}</b-card-title>
+    <b-container>
+      <b-row>
+        <v-col class="col-md-4" v-for="post in filteredPosts" :key="post.id">
+          <b-card class="post-card mb-3 text-start">
+            <b-card-title class="text-primary">{{post.title}}</b-card-title>
             <b-card-text>{{post.body}}</b-card-text>
             <small class="text-muted">{{post.author}}</small>
           </b-card>
+        </v-col>
+      </b-row>
     </b-container>
     <b-spinner class="align-self-center mb-4" variant="primary" v-if="loader"></b-spinner>
     <p v-if="filteredPosts && !filteredPosts.length && !error && !loader">Oops! Sorry, I don't have posts for you. You can try something else :)</p>
     <p v-if="this.error">Something went wrong. Please try again later.</p>
   </div>
-  </body>
-  </html>
 </template>
 
 <script>
@@ -50,14 +46,13 @@ export default {
     const promises = [this.downloadPosts(), this.downloadAuthors()];
     const [posts, authors] = await Promise.all(promises)
     if(posts && authors) {
-      for(let author of authors) {
-        posts.forEach((post) => {
-          if(author.id === post.userId) {
-            post.author = author.name;
-          }
+      this.posts =  posts.map((post) => {
+        let author = authors.find((author) => {
+          if(author.id === post.userId) return author;
         })
-      }
-      this.posts = posts;
+        post.author = author.name;
+        return post;
+      })
       this.loader = false;
     }
   },
@@ -95,17 +90,8 @@ export default {
       display: block;
     }
   }
-
-  .grid-container {
-    display: grid;
-    grid-template-columns:repeat(auto-fill, minmax(330px, 1fr));
-    justify-content: center;
-    align-items: baseline;
-    grid-gap: 10px;
-    .post-card {
-      width: 100%;
-      max-height: min-content;
-    }
+  .post-card {
+    max-height: min-content;
   }
 }
 
